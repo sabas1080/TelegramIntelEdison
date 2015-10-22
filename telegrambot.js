@@ -1,23 +1,19 @@
 // Authorized users, replace with your real IDs
 var authorized_users = [
-  32473742,
+  38075702,
 ];
 
-// Include required libraries
-//var sensorLib = require('node-dht-sensor');
 var Bot = require('node-telegram-bot');
 var m = require('mraa'); //require mraa
 console.log('MRAA Version: ' + m.getVersion()); //write the mraa version to the console
-// Initialize relay board (using onoff library)
-//var Gpio = require('onoff').Gpio,
-//  relay1 = new Gpio(2, 'out'),
-//  relay2 = new Gpio(3, 'out');
 var analogPin0 = new m.Aio(0); //setup access analog inpuput pin 0
-// Turn both the relays off
-//relay1.writeSync(0);
-//relay2.writeSync(0);
-
-// Initialize and start Telegram BOT (insert your real token)
+var analogPin1 = new m.Aio(1);
+var led = new m.Gpio(2);
+led.dir(m.DIR_OUT); //set the gpio direction to output
+var LCD = require('jsupm_i2clcd');
+//Initialize Jhd1313m1 at 0x62 (RGB_ADDRESS) and 0x3E (LCD_ADDRESS)
+var myLcd = new LCD.Jhd1313m1 (0, 0x3E, 0x62);
+myLcd.clear();
 var bot = new Bot({
   token: '119549880:AAHVXowcYOdrI4z2gXVFtcEWUZ9ABsu1Kz8'
 });
@@ -39,65 +35,45 @@ function parseMessage(message) {
   switch(true) {
 
     case message.text == "/gettemp":
-    var analogValue = analogPin0.read();
-      bot.sendMessage({
+      var a = analogPin0.read();
+      var resistance = (1023 - a) * 10000 / a;
+      var celTemp = 1 / (Math.log(resistance / 10000) / 3975 + 1 / 298.15) - 273.15;
+          bot.sendMessage({
         chat_id: message.chat.id,
-        text: 'Actual temperature: ' + analogValue + '°C',
+        text: 'La temperatura es ' + celTemp.toFixed(2) + '°C',
       });
       break;
 
-    case message.text == "/getouts":
-      bot.sendMessage({
+    case message.text == "/getlight":
+     var a = analogPin1.read();
+       if(a <250)
+          {
+             led.write(1);
+          bot.sendMessage({
         chat_id: message.chat.id,
-        text: 'Actual outputs status:\nOutput 1 is ' + relay1.readSync() + '\nOutput 2 is ' + relay2.readSync(),
+        text: 'Prendí la luz',
+       });
+          }
+        else {
+         led.write(0);
+            bot.sendMessage({
+        chat_id: message.chat.id,
+        text: 'Apagué la luz',
+            });
+      }
+      break;
+
+      case message.text == "/getlcd":
+          myLcd.setCursor(0,0);
+          myLcd.write('Hola Guapo');
+          myLcd.setCursor(1,0);
+          myLcd.write('Atte: Intel Edison');
+          bot.sendMessage({
+        chat_id: message.chat.id,
+        text: 'LCD prendida ',
       });
       break;
-  /*  case /^\/setout1/.test(message.text):
-      var command = message.text.replace("/setout1 ", "");
-      if(command.toLowerCase() == "on") {
-        relay1.writeSync(1);
-        bot.sendMessage({
-          chat_id: message.chat.id,
-          text: 'Output 1 turned ON',
-        });
-      } else if(command.toLowerCase() == "off") {
-        relay1.writeSync(0);
-        bot.sendMessage({
-          chat_id: message.chat.id,
-          text: 'Output 1 turned OFF',
-        });
-      } else
-        bot.sendMessage({
-          chat_id: message.chat.id,
-          text: 'Unknown command: ' + command,
-        });
-    break;
-*/
-  /*  case /^\/setout2/.test(message.text):
-      var command = message.text.replace("/setout2 ", "");
-      if(command.toLowerCase() == "on") {
-        relay2.writeSync(1);
-        bot.sendMessage({
-          chat_id: message.chat.id,
-          text: 'Output 2 turned ON',
-        });
-      } else if(command.toLowerCase() == "off") {
-        relay2.writeSync(0);
-        bot.sendMessage({
-          chat_id: message.chat.id,
-          text: 'Output 2 turned OFF',
-        });
-      } else
-        bot.sendMessage({
-          chat_id: message.chat.id,
-          text: 'Unknown command: ' + command,
-        });
-    break;*/
-  }
-}
 
-
-// Function that checks if the user is authorized (its id is in the array)
 function isAuthorized(userid) {
 
   for(i = 0; i < authorized_users.length; i++)
