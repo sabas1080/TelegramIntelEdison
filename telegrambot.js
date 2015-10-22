@@ -1,6 +1,6 @@
 // Authorized users, replace with your real IDs
 var authorized_users = [
-  38075702,
+  32473742,
 ];
 
 // Include required libraries
@@ -16,8 +16,6 @@ var analogPin0 = new m.Aio(0); //setup access analog inpuput pin 0
 // Turn both the relays off
 //relay1.writeSync(0);
 //relay2.writeSync(0);
-// Initialize DHT11 sensor
-//sensorLib.initialize(11, 4);
 
 // Initialize and start Telegram BOT (insert your real token)
 var bot = new Bot({
@@ -36,7 +34,7 @@ console.log("BOT ready!");
 // Function that handles a new message
 function parseMessage(message) {
 
-  if(!isAuthorized(message.from.id)) return;
+  //if(!isAuthorized(message.from.id)) return;
 
   switch(true) {
 
@@ -48,19 +46,12 @@ function parseMessage(message) {
       });
       break;
 
-    case message.text == "/gethum":
-      bot.sendMessage({
-        chat_id: message.chat.id,
-        text: 'Actual humidity: ' + sensorLib.read().humidity.toFixed(0) + '%',
-      });
-      break;
-    /*case message.text == "/getouts":
+    case message.text == "/getouts":
       bot.sendMessage({
         chat_id: message.chat.id,
         text: 'Actual outputs status:\nOutput 1 is ' + relay1.readSync() + '\nOutput 2 is ' + relay2.readSync(),
       });
       break;
-*/
   /*  case /^\/setout1/.test(message.text):
       var command = message.text.replace("/setout1 ", "");
       if(command.toLowerCase() == "on") {
