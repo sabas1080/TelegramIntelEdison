@@ -16,7 +16,6 @@ var analogPin0 = new m.Aio(0); //setup access analog inpuput pin 0
 // Turn both the relays off
 //relay1.writeSync(0);
 //relay2.writeSync(0);
-var analogValueFloat = analogPin0.readFloat(); //read the pin value as a float
 // Initialize DHT11 sensor
 //sensorLib.initialize(11, 4);
 
@@ -42,9 +41,10 @@ function parseMessage(message) {
   switch(true) {
 
     case message.text == "/gettemp":
+    var analogValue = analogPin0.read();
       bot.sendMessage({
         chat_id: message.chat.id,
-        text: 'Actual temperature: ' + analogValueFloat.toFixed(5) + '°C',
+        text: 'Actual temperature: ' + analogValue + '°C',
       });
       break;
 
